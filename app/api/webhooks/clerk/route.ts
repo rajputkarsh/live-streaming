@@ -5,13 +5,6 @@ import { WebhookEvent } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { resetIngresses } from '@/actions/ingress';
 
-export async function GET(req: Request) {
-  console.log('hello -- , ', req);
-  return new Response('GET -- ' + JSON.stringify(req), {
-    status: 200,
-  });
-}
-
 export async function POST(req: Request) {
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the webhook
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -53,7 +46,7 @@ export async function POST(req: Request) {
     }) as WebhookEvent;
   } catch (err) {
     console.error('Error verifying webhook:', err);
-    return new Response('Error occured', {
+    return new Response('Error occured -- Webhook not verified', {
       status: 400,
     });
   }
