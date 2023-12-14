@@ -31,11 +31,6 @@ export const Header = ({
 }: HeaderProps) => {
   const participants = useParticipants();
   const participant = useRemoteParticipant(hostIdentity);
-
-  console.log(`participants -- `, participants);
-  console.log(`hostIdentity -- `, hostIdentity);
-  console.log(`participant -- `, participant);
-
   const isLive = !!participant;
   const participantCount = participants.length - 1;
 
