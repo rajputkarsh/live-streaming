@@ -5,7 +5,7 @@ import { useState, useTransition, useRef, ElementRef } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { IngressInput } from 'livekit-server-sdk';
 
-import { createIngress } from '@/actions/ingress';
+import { createIngress, deleteAllIngresses } from '@/actions/ingress';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -42,9 +42,16 @@ export const ConnectModal = () => {
           toast.success('Ingress created');
           closeRef?.current?.click();
         })
-        .catch((err) => {
-          console.trace('Error in creating ingress - ', err);
-          toast.error('Something went wrong');
+        .catch(async (err) => {
+          await deleteAllIngresses();
+          createIngress(parseInt(ingressType))
+            .then(() => {
+              toast.success('Ingress created');
+              closeRef?.current?.click();
+            })
+            .catch(async (err) => {
+              toast.error('Something went wrong');
+            });
         });
     });
   };

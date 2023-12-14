@@ -1,4 +1,4 @@
-"use server";
+'use server';
 
 import {
   IngressAudioEncodingPreset,
@@ -7,18 +7,18 @@ import {
   IngressVideoEncodingPreset,
   RoomServiceClient,
   type CreateIngressOptions,
-} from "livekit-server-sdk";
+} from 'livekit-server-sdk';
 
-import { TrackSource } from "livekit-server-sdk/dist/proto/livekit_models";
+import { TrackSource } from 'livekit-server-sdk/dist/proto/livekit_models';
 
-import { db } from "@/lib/db";
-import { getSelf } from "@/lib/auth-service";
-import { revalidatePath } from "next/cache";
+import { db } from '@/lib/db';
+import { getSelf } from '@/lib/auth-service';
+import { revalidatePath } from 'next/cache';
 
 const roomService = new RoomServiceClient(
   process.env.LIVEKIT_API_URL!,
   process.env.LIVEKIT_API_KEY!,
-  process.env.LIVEKIT_API_SECRET!,
+  process.env.LIVEKIT_API_SECRET!
 );
 
 const ingressClient = new IngressClient(process.env.LIVEKIT_API_URL!);
@@ -29,6 +29,22 @@ export const resetIngresses = async (hostIdentity: string) => {
   });
 
   const rooms = await roomService.listRooms([hostIdentity]);
+
+  for (const room of rooms) {
+    await roomService.deleteRoom(room.name);
+  }
+
+  for (const ingress of ingresses) {
+    if (ingress.ingressId) {
+      await ingressClient.deleteIngress(ingress.ingressId);
+    }
+  }
+};
+
+export const deleteAllIngresses = async () => {
+  const ingresses = await ingressClient.listIngress({});
+
+  const rooms = await roomService.listRooms();
 
   for (const room of rooms) {
     await roomService.deleteRoom(room.name);
@@ -62,17 +78,14 @@ export const createIngress = async (ingressType: IngressInput) => {
     };
     options.audio = {
       source: TrackSource.MICROPHONE,
-      preset: IngressAudioEncodingPreset.OPUS_STEREO_96KBPS
+      preset: IngressAudioEncodingPreset.OPUS_STEREO_96KBPS,
     };
-  };
+  }
 
-  const ingress = await ingressClient.createIngress(
-    ingressType,
-    options,
-  );
+  const ingress = await ingressClient.createIngress(ingressType, options);
 
   if (!ingress || !ingress.url || !ingress.streamKey) {
-    throw new Error("Failed to create ingress");
+    throw new Error('Failed to create ingress');
   }
 
   await db.stream.update({
