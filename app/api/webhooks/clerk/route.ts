@@ -53,40 +53,47 @@ export async function POST(req: Request) {
 
   const eventType = evt.type;
 
-  if (eventType === 'user.created') {
-    await db.user.create({
-      data: {
-        externalUserId: payload.data.id,
-        username: payload.data.username,
-        imageUrl: payload.data.image_url,
-        stream: {
-          create: {
-            name: `${payload.data.username}'s stream`,
+  try {
+    if (eventType === 'user.created') {
+      await db.user.create({
+        data: {
+          externalUserId: payload.data.id,
+          username: payload.data.username,
+          imageUrl: payload.data.image_url,
+          stream: {
+            create: {
+              name: `${payload.data.username}'s stream`,
+            },
           },
         },
-      },
-    });
-  }
+      });
+    }
 
-  if (eventType === 'user.updated') {
-    await db.user.update({
-      where: {
-        externalUserId: payload.data.id,
-      },
-      data: {
-        username: payload.data.username,
-        imageUrl: payload.data.image_url,
-      },
-    });
-  }
+    if (eventType === 'user.updated') {
+      await db.user.update({
+        where: {
+          externalUserId: payload.data.id,
+        },
+        data: {
+          username: payload.data.username,
+          imageUrl: payload.data.image_url,
+        },
+      });
+    }
 
-  if (eventType === 'user.deleted') {
-    await resetIngresses(payload.data.id);
+    if (eventType === 'user.deleted') {
+      await resetIngresses(payload.data.id);
 
-    await db.user.delete({
-      where: {
-        externalUserId: payload.data.id,
-      },
+      await db.user.delete({
+        where: {
+          externalUserId: payload.data.id,
+        },
+      });
+    }
+  } catch (error: any) {
+    console.error('Error in saving user:', error);
+    return new Response('Error occured -- could not save user', {
+      status: 400,
     });
   }
 
